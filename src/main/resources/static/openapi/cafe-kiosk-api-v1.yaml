@@ -1,0 +1,434 @@
+# CafeKiosk API v1
+# 이 파일에 서비스의 API 명세를 정의합니다.
+openapi: 3.0.3
+info:
+  title: CafeKiosk API
+  version: "1.0.0"
+  description: TDD로 개발하는 카페 키오스크 API 서버
+servers:
+  - url: /
+    description: Local server
+paths:
+  /api/v1/products:
+    post:
+      tags:
+        - Product
+      summary: 신규 상품 등록
+      description: 신규 상품을 시스템에 등록합니다.
+      operationId: createProduct
+      requestBody:
+        description: 신규 상품 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: 상품 등록 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/products/selling:
+    get:
+      tags:
+        - Product
+      summary: 판매 상품 목록 조회
+      description: 현재 판매중인 모든 상품의 목록을 조회합니다.
+      operationId: getSellingProducts
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/orders:
+    post:
+      tags:
+        - Order
+      summary: 신규 주문 등록
+      description: 상품 번호 목록을 받아 신규 주문을 등록합니다.
+      operationId: createOrder
+      requestBody:
+        description: 신규 주문에 포함될 상품 번호 목록
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: 주문 등록 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/orders/{orderId}/status:
+    patch:
+      tags:
+        - Order
+      summary: 주문 상태 변경
+      description: 특정 주문의 상태를 변경합니다.
+      operationId: updateOrderStatus
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 주문 ID
+      requestBody:
+        description: 변경할 주문 상태 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+      responses:
+        '200':
+          description: 주문 상태 변경 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 주문을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/cart:
+    post:
+      tags:
+        - Cart
+      summary: 장바구니에 상품 추가
+      description: 장바구니에 상품을 추가합니다.
+      operationId: addItemToCart
+      requestBody:
+        description: 장바구니에 추가할 상품 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemAddRequest'
+      responses:
+        '200':
+          description: 상품 추가 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Cart
+      summary: 장바구니 조회
+      description: 현재 장바구니에 담긴 상품 목록을 조회합니다.
+      operationId: getCart
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Cart
+      summary: 장바구니 전체 비우기
+      description: 장바구니의 모든 상품을 삭제합니다.
+      operationId: clearCart
+      responses:
+        '200':
+          description: 장바구니 비우기 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/cart/items/{productNumber}:
+    put:
+      tags:
+        - Cart
+      summary: 장바구니 상품 수량 변경
+      description: 장바구니에 담긴 특정 상품의 수량을 변경합니다.
+      operationId: updateCartItemQuantity
+      parameters:
+        - name: productNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 수량을 변경할 상품 번호
+      requestBody:
+        description: 변경할 상품 수량 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemUpdateRequest'
+      responses:
+        '200':
+          description: 수량 변경 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Cart
+      summary: 장바구니에서 상품 삭제
+      description: 장바구니에서 특정 상품을 삭제합니다.
+      operationId: removeCartItem
+      parameters:
+        - name: productNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 삭제할 상품 번호
+      responses:
+        '200':
+          description: 상품 삭제 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ProductCreateRequest:
+      type: object
+      properties:
+        productNumber:
+          type: string
+          description: 상품 번호
+        name:
+          type: string
+          description: 상품명
+        price:
+          type: integer
+          format: int32
+          description: 가격
+        sellingStatus:
+          $ref: '#/components/schemas/SellingStatus'
+      required:
+        - productNumber
+        - name
+        - price
+        - sellingStatus
+
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 상품 ID
+        productNumber:
+          type: string
+          description: 상품 번호
+        name:
+          type: string
+          description: 상품명
+        price:
+          type: integer
+          format: int32
+          description: 가격
+        sellingStatus:
+          $ref: '#/components/schemas/SellingStatus'
+
+    SellingStatus:
+      type: string
+      enum:
+        - SELLING
+        - HOLD
+        - STOP_SELLING
+      description: |
+        상품 판매 상태:
+        * `SELLING`: 판매중
+        * `HOLD`: 판매 보류
+        * `STOP_SELLING`: 판매 중지
+
+    OrderCreateRequest:
+      type: object
+      properties:
+        productNumbers:
+          type: array
+          items:
+            type: string
+          description: 주문할 상품의 상품 번호 목록
+      required:
+        - productNumbers
+
+    OrderResponse:
+      type: object
+      x-lombok-builder: true # 이 부분을 추가합니다.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 주문 ID
+        totalPrice:
+          type: integer
+          format: int32
+          description: 총 주문 금액
+        registeredDateTime:
+          type: string
+          format: date-time
+          description: 주문 등록 일시
+        orderStatus: # 이 부분을 추가합니다.
+          $ref: '#/components/schemas/OrderStatus' # OrderStatus 스키마를 참조합니다.
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+
+    OrderStatus: # 이 부분을 추가합니다.
+      type: string
+      enum:
+        - INIT
+        - CANCELED
+        - COMPLETED
+      description: |
+        주문 상태:
+        * `INIT`: 주문 접수
+        * `CANCELED`: 주문 취소
+        * `COMPLETED`: 처리 완료
+
+    OrderStatusUpdateRequest:
+      type: object
+      properties:
+        orderStatus:
+          $ref: '#/components/schemas/OrderStatus'
+      required:
+        - orderStatus
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 에러 코드
+        message:
+          type: string
+          description: 에러 메시지
+
+    CartItemAddRequest:
+      type: object
+      properties:
+        productNumber:
+          type: string
+          description: 상품 번호
+        quantity:
+          type: integer
+          format: int32
+          description: 수량
+      required:
+        - productNumber
+        - quantity
+
+    CartItemUpdateRequest:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int32
+          description: 변경할 수량
+      required:
+        - quantity
+
+    CartResponse:
+      type: object
+      properties:
+        cartId:
+          type: string
+          description: 장바구니 ID
+        totalPrice:
+          type: integer
+          format: int32
+          description: 총 장바구니 금액
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemResponse'
+
+    CartItemResponse:
+      type: object
+      properties:
+        productNumber:
+          type: string
+          description: 상품 번호
+        name:
+          type: string
+          description: 상품명
+        price:
+          type: integer
+          format: int32
+          description: 가격
+        quantity:
+          type: integer
+          format: int32
+          description: 수량
