@@ -1,0 +1,11 @@
+# Payment Service API v1
+# 이 파일에는 외부 결제 서비스의 API 명세를 정의합니다.
+openapi: 3.0.3
+info:
+  title: Payment Service API
+  version: 1.0.0
+  description: 외부 결제 시스템 API 명세
+servers:
+  - url: https://api.payment.com
+    description: Payment service server
+paths: {}
