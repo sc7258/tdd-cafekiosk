@@ -43,6 +43,7 @@ dependencies {
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'io.swagger.parser.v3:swagger-parser:2.1.18' // 올바른 swagger-parser 의존성
 
 
     compileOnly 'org.projectlombok:lombok'
@@ -55,9 +56,19 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// OpenAPI 스펙 파일을 static 리소스 디렉토리로 복사하는 태스크
+task copyOpenApiSpec(type: Copy) {
+    from "$projectDir/openapi"
+    include "cafe-kiosk-api-v1.yaml"
+    into "$projectDir/src/main/resources/static/openapi"
+    // DuplicatesStrategy.REPLACE 대신 DuplicatesStrategy.OVERWRITE를 사용
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/openapi/cafe-kiosk-api-v1.yaml"
+    // inputSpec 경로를 복사된 파일의 경로로 변경
+    inputSpec = "$projectDir/src/main/resources/static/openapi/cafe-kiosk-api-v1.yaml"
     outputDir = "$buildDir/generated/openapi"
     apiPackage = "com.sc7258.tddcafekiosk.api"
     modelPackage = "com.sc7258.tddcafekiosk.api.models"
@@ -70,6 +81,11 @@ openApiGenerate {
     ]
 }
 
+// openApiGenerate 태스크에 직접 의존성을 설정합니다.
+tasks.named('openApiGenerate') {
+    dependsOn(copyOpenApiSpec)
+}
+
 sourceSets {
     main {
         java {
@@ -80,6 +96,10 @@ sourceSets {
 
 tasks.named('compileJava') {
     dependsOn tasks.named('openApiGenerate')
+}
+
+tasks.named('processResources') {
+    dependsOn(copyOpenApiSpec)
 }
 
 tasks.named('test') {

@@ -54,11 +54,22 @@ public class Order extends BaseEntity {
                 .sum();
     }
 
-    // Setter for testing purposes (will be removed or refined later)
-    // BaseEntity에서 id를 상속받으므로 여기서는 제거합니다.
-    // public void setId(Long id) {
-    //     this.id = id;
-    // }
+    public void updateStatus(OrderStatus newStatus) {
+        if (!canUpdateStatusTo(newStatus)) {
+            throw new InvalidOrderStatusException(
+                    String.format("Cannot change order status from %s to %s", this.orderStatus, newStatus));
+        }
+        this.orderStatus = newStatus;
+    }
+
+    private boolean canUpdateStatusTo(OrderStatus newStatus) {
+        // 현재 상태가 INIT일 경우 COMPLETED 또는 CANCELED로 변경 가능
+        if (this.orderStatus == OrderStatus.INIT) {
+            return newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.CANCELED;
+        }
+        // 현재 상태가 COMPLETED 또는 CANCELED일 경우 어떤 상태로도 변경 불가능
+        return false;
+    }
 
     public void setRegisteredDateTime(LocalDateTime registeredDateTime) {
         this.registeredDateTime = registeredDateTime;

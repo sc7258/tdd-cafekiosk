@@ -6,7 +6,7 @@ info:
   version: "1.0.0"
   description: TDD로 개발하는 카페 키오스크 API 서버
 servers:
-  - url: http://localhost:8080/
+  - url: /
     description: Local server
 paths:
   /api/v1/products:
@@ -83,6 +83,48 @@ paths:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
           description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/orders/{orderId}/status:
+    patch:
+      tags:
+        - Order
+      summary: 주문 상태 변경
+      description: 특정 주문의 상태를 변경합니다.
+      operationId: updateOrderStatus
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 주문 ID
+      requestBody:
+        description: 변경할 주문 상태 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+      responses:
+        '200':
+          description: 주문 상태 변경 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 주문을 찾을 수 없음
           content:
             application/json:
               schema:
@@ -315,6 +357,14 @@ components:
         * `INIT`: 주문 접수
         * `CANCELED`: 주문 취소
         * `COMPLETED`: 처리 완료
+
+    OrderStatusUpdateRequest:
+      type: object
+      properties:
+        orderStatus:
+          $ref: '#/components/schemas/OrderStatus'
+      required:
+        - orderStatus
 
     ErrorResponse:
       type: object
