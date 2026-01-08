@@ -3,11 +3,12 @@ package com.sc7258.tddcafekiosk.domain.product;
 import com.sc7258.tddcafekiosk.api.models.ProductCreateRequest;
 import com.sc7258.tddcafekiosk.api.models.ProductResponse;
 import com.sc7258.tddcafekiosk.api.models.SellingStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 @SpringBootTest
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ProductServiceTest {
 
     @Autowired
@@ -23,11 +26,6 @@ class ProductServiceTest {
 
     @Autowired
     private ProductRepository productRepository;
-
-    @AfterEach
-    void tearDown() {
-        productRepository.deleteAllInBatch();
-    }
 
     @DisplayName("신규 상품을 등록하면 상품이 생성되고, 생성된 상품 정보가 반환된다.")
     @Test
